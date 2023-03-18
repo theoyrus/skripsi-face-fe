@@ -1,85 +1,76 @@
+import dayjs, { Dayjs } from "dayjs"
 import { atom, useAtom } from "jotai"
+import { useConfirm } from "material-ui-confirm"
 import { SyntheticEvent, useEffect, useState } from "react"
 import {
   AutocompleteElement,
-  FormContainer,
   Controller,
+  DatePickerElement,
+  DateTimePickerElement,
+  FormContainer,
   SubmitHandler,
   TextFieldElement,
+  TimePickerElement,
   useForm,
 } from "react-hook-form-mui"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "react-toastify"
 
+import { useKaryawanData } from "@/apps/karyawan/components/KaryawanData"
 import { FormDialog, useFormDialog } from "@/components/mui/dialogs/FormDialog"
-import Button from "@mui/material/Button/Button"
-import Icon from "@mui/material/Icon/Icon"
-import { useQueryClient } from "@tanstack/react-query"
-
-import { CitraWajahAPI } from "../../services/citrawajah.api"
-import { useConfirm } from "material-ui-confirm"
-
 import { parseError } from "@/infra/api/axios/utils"
+import Button from "@mui/material/Button/Button"
 import FormControl from "@mui/material/FormControl/FormControl"
-import InputLabel from "@mui/material/InputLabel/InputLabel"
+import Icon from "@mui/material/Icon/Icon"
+import IconButton from "@mui/material/IconButton/IconButton"
 import Input from "@mui/material/Input/Input"
 import InputAdornment from "@mui/material/InputAdornment/InputAdornment"
-import IconButton from "@mui/material/IconButton/IconButton"
+import InputLabel from "@mui/material/InputLabel/InputLabel"
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
+import { useQueryClient } from "@tanstack/react-query"
+
+import { IKehadiranCreateReq, Kehadiran } from "../../data/kehadiran"
+import { KehadiranAPI } from "../../services/kehadiran.api"
 import {
-  CitraWajah,
-  ICitraWajahCreateReq,
-  ICitraWajahUpdateReq,
-} from "../../data/citrawajah"
-import { useKaryawanData } from "@/apps/karyawan/components/KaryawanData"
-import { MuiFileInput } from "mui-file-input"
-import Typography from "@mui/material/Typography/Typography"
-import * as zod from "zod"
+  convertToJakartaTZ,
+  dateTimeUtcTrue,
+  parseDate,
+} from "@/infra/utils/datetime.util"
 
-const RQ_KEY = "citrawajah"
+const RQ_KEY = "kehadiran"
 
-interface ICitraWajahForm extends CitraWajah {
+interface IKehadiranForm extends Kehadiran {
   cmd?: "add" | "edit"
-  citra?: File
 }
 
-const citrawajahFormAtom = atom<ICitraWajahForm>({
+const kehadiranFormAtom = atom<IKehadiranForm>({
   cmd: "add",
 })
 
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"]
-const schema = zod
-  .object({
-    cmd: zod.string(),
-    karyawan_id: zod.number().positive({ message: "Mohon pilih karyawan" }),
-    citra: zod
-      .custom<File>((v) => v instanceof File)
-      .refine((file) => file != undefined, "Image is required.")
-      .refine(
-        (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-        "Only .jpg, .jpeg, and .png formats are supported."
-      ),
-  })
-  .required()
-
-export const useCitraWajahForm = () => {
-  const [formData, setFormData] = useAtom(citrawajahFormAtom)
+export const useKehadiranForm = () => {
+  const [formData, setFormData] = useAtom(kehadiranFormAtom)
   const { isDialogOpen, dialogOpen, dialogClose } = useFormDialog()
   const queryClient = useQueryClient()
   const confirm = useConfirm()
 
-  const onSubmit: SubmitHandler<ICitraWajahForm> = async (data) => {
+  const onSubmit: SubmitHandler<IKehadiranForm> = async (data) => {
     const fData = {
+      ...data,
       karyawan: data.karyawan_id,
-      nama: data.citra,
+      jenis: data.cmd == "add" ? "IN" : data.jenis,
+      waktu_hadir: data.waktu_hadir
+        ? dateTimeUtcTrue(data.waktu_hadir as string)
+        : null,
+      waktu_pulang: data.waktu_pulang
+        ? dateTimeUtcTrue(data.waktu_pulang as string)
+        : null,
     }
-    console.log(fData)
     if (data.cmd == "add") {
-      await CitraWajahAPI.create(fData as ICitraWajahCreateReq)
+      await KehadiranAPI.create(fData as IKehadiranCreateReq)
         .then(() => {
           toast.success("Berhasil disimpan :)")
           dialogClose()
           refresh()
-          CitraWajahAPI.training()
         })
         .catch((e) => {
           let err = parseError(e)
@@ -92,34 +83,49 @@ export const useCitraWajahForm = () => {
           ))
         })
     } else {
-      CitraWajahAPI.update(
-        data.citrawajah_id ?? 0,
-        fData as ICitraWajahUpdateReq
-      ).then(() => {
-        toast.success("Berhasil disimpan :)")
-        dialogClose()
-        refresh()
-      })
+      await KehadiranAPI.update(
+        data.presensi_id ?? 0,
+        fData as IKehadiranCreateReq
+      )
+        .then(() => {
+          toast.success("Berhasil disimpan :)")
+          dialogClose()
+          refresh()
+        })
+        .catch((e) => {
+          let err = parseError(e)
+          toast.warning(() => (
+            <>
+              Maaf, mohon cek isian form.
+              <br />
+              <code>{err}</code>
+            </>
+          ))
+        })
     }
   }
 
-  // let formContext = useForm<ICitraWajahForm>()
-  let formContext = useForm<ICitraWajahForm>({ resolver: zodResolver(schema) })
+  let formContext = useForm<IKehadiranForm>({
+    defaultValues: { tanggal: dayjs(Date.now()) },
+  })
 
   const tambah = () => {
-    setFormData({ cmd: "add", karyawan_id: 0, citra: undefined })
+    setFormData({ cmd: "add", karyawan_id: 0 })
     dialogOpen()
   }
-  const edit = (data: ICitraWajahForm) => {
-    // data["user_id"] = data.user?.id
+  const edit = (data: IKehadiranForm) => {
+    data["karyawan_id"] = data.karyawan?.karyawan_id
     setFormData({ ...data, ...{ cmd: "edit" } })
     dialogOpen()
   }
   const fillForm = () => {
     Object.keys(formData).forEach((key) => {
-      const col = key as keyof ICitraWajahForm
+      const col = key as keyof IKehadiranForm
       formContext.setValue(col, formData[col])
     })
+    formContext.setValue("tanggal", dayjs(formData.tanggal))
+    formContext.setValue("waktu_hadir", parseDate(formData.waktu_hadir))
+    formContext.setValue("waktu_pulang", parseDate(formData.waktu_pulang))
   }
   const simpan = () => {
     formContext.handleSubmit(onSubmit)()
@@ -133,11 +139,10 @@ export const useCitraWajahForm = () => {
       description: `Apakah yakin menghapus data ini?`,
     })
       .then(() => {
-        CitraWajahAPI.delete(id)
+        KehadiranAPI.delete(id)
           .then(() => {
             toast.success("Berhasil dihapus")
             refresh()
-            CitraWajahAPI.training()
           })
           .catch((e) => {
             toast.error(`Maaf, ada kesalahan ${e}`)
@@ -160,15 +165,16 @@ export const useCitraWajahForm = () => {
   } as const
 }
 
-export const CitraWajahForm = () => {
+export const KehadiranForm = () => {
   const { fillForm, simpan, formContext, isDialogOpen, dialogClose, formData } =
-    useCitraWajahForm()
+    useKehadiranForm()
   const {
     karyawanOptionsMUI,
     handleFilterServer: handleFilterKaryawan,
     karyawanQueryIsLoading,
   } = useKaryawanData()
   const [showKaryawanCombo, setshowKaryawanCombo] = useState(true)
+  const [waktuHadirUtc, setwaktuHadirUtc] = useState<string>("")
 
   useEffect(() => {
     fillForm()
@@ -228,40 +234,39 @@ export const CitraWajahForm = () => {
             </FormControl>
           ) : null}
           {showKaryawanCombo ? (
-            <>
-              <AutocompleteElement
-                matchId
-                options={karyawanOptionsMUI as any}
-                name="karyawan_id"
-                label="Karyawan"
-                required
-                rules={{
-                  required: "Please fill out.",
-                }}
-                loading={karyawanQueryIsLoading}
-                textFieldProps={{ onChange: handleFilterKaryawan }}
-              />
-            </>
+            <AutocompleteElement
+              matchId
+              options={karyawanOptionsMUI as any}
+              name="karyawan_id"
+              label="Karyawan"
+              required
+              loading={karyawanQueryIsLoading}
+              textFieldProps={{ onChange: handleFilterKaryawan }}
+            />
           ) : null}
           <br />
           <br />
-          <Typography component="label">Citra Wajah</Typography>
-          <br />
-          <Controller
-            name="citra"
-            control={formContext.control}
-            render={({ field, fieldState }) => (
-              <MuiFileInput
-                {...field}
-                variant="standard"
-                helperText={fieldState.invalid ? "Berkas tidak sesuai" : ""}
-                error={fieldState.invalid}
-              />
-            )}
-          />
-          {/* {formContext.formState.errors.citra?.message && (
-            <p>{formContext.formState.errors.citra?.message}</p>
-          )} */}
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePickerElement
+              label="Tanggal"
+              name="tanggal"
+              required
+              validation={{
+                required: "Wajib dipilih",
+              }}
+            />
+            {formData.cmd == "edit" ? (
+              <>
+                <br />
+                <br />
+                <TimePickerElement
+                  label="Waktu Hadir"
+                  name="waktu_hadir"
+                />{" "}
+                <TimePickerElement label="Waktu Pulang" name="waktu_pulang" />
+              </>
+            ) : null}
+          </LocalizationProvider>
         </FormContainer>
       </FormDialog>
     </div>

@@ -1,4 +1,3 @@
-import { useAuth } from "@/apps/auth/services/auth.hook"
 import { AuthService } from "@/apps/auth/services/auth.service"
 import { ReactNode } from "react"
 import { Navigate, Outlet } from "react-router-dom"

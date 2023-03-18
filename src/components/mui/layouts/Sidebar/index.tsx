@@ -43,7 +43,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }: Props) => {
     <>
       <Box sx={{ display: { xs: "block", md: "none" } }}>
         <Box sx={{ display: "flex", p: 2, mx: "auto" }}>
-          <LogoSection />
+          <LogoSection isFilter />
         </Box>
       </Box>
       <BrowserView>

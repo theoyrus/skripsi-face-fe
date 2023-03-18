@@ -1,16 +1,19 @@
-import LoaderApp from "@/components/mui/LoaderApp"
-import { Button } from "@mui/material"
 import { lazy } from "react"
 import { RouteObject } from "react-router-dom"
-const DashboardPage = LoaderApp(lazy(() => import("./views")))
+
+import AppLoader from "@/components/AppLoader"
+
+const PageLayout = lazy(() => import("@/components/mui/layouts/PageLayout"))
+const DashboardPage = AppLoader(lazy(() => import("./views")))
 
 const routes: RouteObject[] = [
   {
     path: "",
     element: (
       <>
-        <DashboardPage />
-        <Button>AAA</Button>
+        <PageLayout title="Grafik & Ringkasan">
+          <DashboardPage />
+        </PageLayout>
       </>
     ),
   },

@@ -31,15 +31,15 @@ export const useDivisiForm = () => {
   const queryClient = useQueryClient()
   const confirm = useConfirm()
 
-  const onSubmit: SubmitHandler<IDivisiForm> = (data) => {
+  const onSubmit: SubmitHandler<IDivisiForm> = async (data) => {
     if (data.cmd == "add") {
-      DivisiAPI.create(data).then(() => {
+      await DivisiAPI.create(data).then(() => {
         toast.success("Berhasil disimpan :)")
         dialogClose()
         refresh()
       })
     } else {
-      DivisiAPI.update(data.divisi_id ?? 0, data).then(() => {
+      await DivisiAPI.update(data.divisi_id ?? 0, data).then(() => {
         toast.success("Berhasil disimpan :)")
         dialogClose()
         refresh()
@@ -119,8 +119,16 @@ export const DivisiForm = () => {
             <Button color="error" variant="outlined" onClick={dialogClose}>
               <Icon>cancel</Icon> Batal
             </Button>
-            <Button color="success" variant="outlined" onClick={simpan}>
-              <Icon>save</Icon> Simpan
+            <Button
+              color="success"
+              variant="outlined"
+              onClick={simpan}
+              disabled={formContext.formState.isSubmitting}
+            >
+              <Icon>save</Icon>
+              {formContext.formState.isSubmitting
+                ? "Menyimpan ..."
+                : "Simpan"}{" "}
             </Button>
           </>
         }

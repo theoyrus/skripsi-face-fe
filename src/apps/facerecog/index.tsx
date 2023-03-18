@@ -1,10 +1,10 @@
 import { lazy } from "react"
 import { RouteObject } from "react-router-dom"
 
-import PageLayout from "@/components/mui/layouts/PageLayout"
-import LoaderApp from "@/components/mui/LoaderApp"
+import AppLoader from "@/components/AppLoader"
 
-const CitraWajahPage = LoaderApp(
+const PageLayout = lazy(() => import("@/components/mui/layouts/PageLayout"))
+const CitraWajahPage = AppLoader(
   lazy(() => import("./views/citrawajah/CitraWajahPage"))
 )
 
@@ -13,7 +13,7 @@ const routes: RouteObject[] = [
     path: "citrawajah",
     element: (
       <>
-        <PageLayout title="Data CitraWajah">
+        <PageLayout title="Data Citra Wajah">
           <CitraWajahPage />
         </PageLayout>
       </>

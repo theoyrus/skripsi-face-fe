@@ -15,7 +15,24 @@ export const CitraWajahAPI = {
     return res.data
   },
   create: async (data: ICitraWajahCreateReq) => {
-    const res = await apiClient.post(`${EndPoints.CITRAWAJAH}`, data)
+    const formData = new FormData()
+    Object.entries(data).forEach(([k, v]) => {
+      formData.append(k, v)
+    })
+    // formData.append("nama", data.citra)
+    console.log(formData)
+
+    const config = {
+      headers: {
+        "content-type": "multipart/form-data",
+      },
+    }
+
+    const res = await apiClient.post(
+      `${EndPoints.CITRAWAJAH}`,
+      formData,
+      config
+    )
     return res.data
   },
   update: async (id: number, data: ICitraWajahUpdateReq) => {
@@ -25,5 +42,8 @@ export const CitraWajahAPI = {
   delete: async (id: number) => {
     const res = await apiClient.delete(`${EndPoints.CITRAWAJAH}/${id}`)
     return res.data
+  },
+  training: async () => {
+    return await apiClient.post(`${EndPoints.TRAINING}`)
   },
 }

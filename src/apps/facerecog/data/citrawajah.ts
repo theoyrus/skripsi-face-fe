@@ -1,6 +1,8 @@
+import { Karyawan } from "@/apps/karyawan/data/karyawan"
+
 export interface CitraWajah {
   citrawajah_id?: number
-  karyawan?: string
+  karyawan?: Karyawan
   karyawan_id?: number
   nama?: string
   created?: Date
@@ -19,11 +21,13 @@ export interface ICitraWajahListReq {
 }
 
 export interface ICitraWajahCreateReq {
-  nama: string
+  karyawan: number
+  nama: File
 }
 
 export interface ICitraWajahUpdateReq {
-  nama: string
+  karyawan: number
+  nama: File
 }
 
 export interface Meta {

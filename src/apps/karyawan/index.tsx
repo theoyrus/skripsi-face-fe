@@ -1,11 +1,11 @@
 import { lazy } from "react"
 import { RouteObject } from "react-router-dom"
 
-import PageLayout from "@/components/mui/layouts/PageLayout"
-import LoaderApp from "@/components/mui/LoaderApp"
+import AppLoader from "@/components/AppLoader"
 
-const KaryawanPage = LoaderApp(lazy(() => import("./views/KaryawanPage")))
-const DivisiPage = LoaderApp(lazy(() => import("./views/DivisiPage")))
+const PageLayout = lazy(() => import("@/components/mui/layouts/PageLayout"))
+const KaryawanPage = AppLoader(lazy(() => import("./views/KaryawanPage")))
+const DivisiPage = AppLoader(lazy(() => import("./views/DivisiPage")))
 
 const routes: RouteObject[] = [
   {

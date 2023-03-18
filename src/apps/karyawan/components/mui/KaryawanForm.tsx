@@ -48,14 +48,14 @@ export const useKaryawanForm = () => {
   const queryClient = useQueryClient()
   const confirm = useConfirm()
 
-  const onSubmit: SubmitHandler<IKaryawanForm> = (data) => {
+  const onSubmit: SubmitHandler<IKaryawanForm> = async (data) => {
     const fData = {
       ...data,
       divisi: data.divisi_id,
       user: data.user_id,
     }
     if (data.cmd == "add") {
-      KaryawanAPI.create(fData as IKaryawanCreateReq)
+      await KaryawanAPI.create(fData as IKaryawanCreateReq)
         .then(() => {
           toast.success("Berhasil disimpan :)")
           dialogClose()
@@ -72,7 +72,7 @@ export const useKaryawanForm = () => {
           ))
         })
     } else {
-      KaryawanAPI.update(
+      await KaryawanAPI.update(
         data.karyawan_id ?? 0,
         fData as IKaryawanCreateReq
       ).then(() => {
@@ -165,8 +165,16 @@ export const KaryawanForm = () => {
             <Button color="error" variant="outlined" onClick={dialogClose}>
               <Icon>cancel</Icon> Batal
             </Button>
-            <Button color="success" variant="outlined" onClick={simpan}>
-              <Icon>save</Icon> Simpan
+            <Button
+              color="success"
+              variant="outlined"
+              onClick={simpan}
+              disabled={formContext.formState.isSubmitting}
+            >
+              <Icon>save</Icon>
+              {formContext.formState.isSubmitting
+                ? "Menyimpan ..."
+                : "Simpan"}{" "}
             </Button>
           </>
         }

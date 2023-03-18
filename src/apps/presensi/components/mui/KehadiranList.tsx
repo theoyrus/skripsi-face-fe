@@ -1,3 +1,5 @@
+import dayjs from "dayjs"
+
 import { useMUIDataGridServer } from "@/components/mui/datagrid"
 import LoaderCenter from "@/components/mui/LoaderCenter"
 import RQError from "@/infra/api/react-query/RQError"
@@ -5,16 +7,21 @@ import Avatar from "@mui/material/Avatar/Avatar"
 import Button from "@mui/material/Button/Button"
 import ButtonGroup from "@mui/material/ButtonGroup/ButtonGroup"
 import Icon from "@mui/material/Icon/Icon"
-import { DataGrid, GridCellParams, GridColDef } from "@mui/x-data-grid"
+import {
+  DataGrid,
+  GridCellParams,
+  GridColDef,
+  GridValueFormatterParams,
+} from "@mui/x-data-grid"
 import { useQuery } from "@tanstack/react-query"
 
-import { ICitraWajahListRes, CitraWajah } from "../../data/citrawajah"
-import { CitraWajahAPI } from "../../services/citrawajah.api"
-import { useCitraWajahForm } from "./CitraWajahForm"
+import { IKehadiranListRes, Kehadiran } from "../../data/kehadiran"
+import { KehadiranAPI } from "../../services/kehadiran.api"
+import { useKehadiranForm } from "./KehadiranForm"
 
-const CitraWajahList = () => {
+const KehadiranList = () => {
   const { currentPage, filterText, dataGridProps } = useMUIDataGridServer()
-  const { edit, hapus } = useCitraWajahForm()
+  const { edit, hapus } = useKehadiranForm()
   const columns: GridColDef[] = [
     {
       field: "num",
@@ -25,29 +32,38 @@ const CitraWajahList = () => {
       },
     },
     {
+      field: "tanggal",
+      headerName: "Tanggal",
+      renderCell: (params: GridCellParams) => {
+        return params.row.tanggal
+      },
+    },
+    {
       field: "karyawan",
       headerName: "Karyawan",
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridCellParams) => {
-        const kolom = params.row as CitraWajah
+        const kolom = params.row as Kehadiran
         return kolom.karyawan?.nama
       },
     },
     {
-      field: "nama",
-      headerName: "Citra",
-      minWidth: 200,
-      sortable: false,
+      field: "waktu_hadir",
+      headerName: "Hadir",
       renderCell: (params: GridCellParams) => {
-        const kolom = params.row as CitraWajah
-        return (
-          <Avatar
-            alt={kolom.karyawan?.nama}
-            src={kolom.nama}
-            sx={{ width: 48, height: 48 }}
-          />
-        )
+        const wh = params.row.waktu_hadir as Date
+        let waktu_hadir = dayjs(wh).format("HH:mm")
+        return wh ? waktu_hadir : "-"
+      },
+    },
+    {
+      field: "waktu_pulang",
+      headerName: "Pulang",
+      renderCell: (params: GridCellParams) => {
+        const wp = params.row.waktu_pulang as Date
+        let waktu_pulang = dayjs(wp).format("HH:mm")
+        return wp ? waktu_pulang : "-"
       },
     },
     {
@@ -61,9 +77,9 @@ const CitraWajahList = () => {
         return (
           <>
             <ButtonGroup>
-              {/* <Button color="warning" onClick={() => handleEdit(params)}>
+              <Button color="warning" onClick={() => handleEdit(params)}>
                 <Icon>edit</Icon>&nbsp;
-              </Button> */}
+              </Button>
               <Button color="error" onClick={() => handleHapus(params)}>
                 <Icon>delete</Icon>&nbsp;
               </Button>
@@ -75,10 +91,10 @@ const CitraWajahList = () => {
   ]
 
   const { data, isLoading, isFetched, isError, error } =
-    useQuery<ICitraWajahListRes>({
-      queryKey: ["citrawajah", filterText, dataGridProps.pageSize, currentPage],
+    useQuery<IKehadiranListRes>({
+      queryKey: ["kehadiran", filterText, dataGridProps.pageSize, currentPage],
       queryFn: () =>
-        CitraWajahAPI.list({
+        KehadiranAPI.list({
           page: currentPage,
           limit: dataGridProps.pageSize,
           filter: filterText,
@@ -87,13 +103,13 @@ const CitraWajahList = () => {
     })
 
   const handleEdit = (params: GridCellParams) => {
-    const citrawajahData = params.row
-    edit(citrawajahData)
+    const kehadiranData = params.row
+    edit(kehadiranData)
   }
 
   const handleHapus = (params: GridCellParams) => {
-    const citrawajahData = params.row
-    hapus(citrawajahData.citrawajah_id)
+    const kehadiranData = params.row
+    hapus(kehadiranData.presensi_id)
   }
 
   if (isLoading) return <LoaderCenter />
@@ -108,7 +124,7 @@ const CitraWajahList = () => {
           loading={isLoading}
           autoHeight
           columns={columns}
-          getRowId={(row) => row.citrawajah_id}
+          getRowId={(row) => row.presensi_id}
           rows={data?.data ?? []}
           rowCount={data?.meta?.total}
           rowsPerPageOptions={[5, 10, 25, 50, 100]}
@@ -120,4 +136,4 @@ const CitraWajahList = () => {
   )
 }
 
-export default CitraWajahList
+export default KehadiranList

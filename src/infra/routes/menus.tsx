@@ -72,15 +72,29 @@ const masterMenu: INavItem = {
   ],
 }
 
-const adminMenu: INavItem = {
+const presensiMenu: INavItem = {
   id: "003",
+  title: "Presensi",
+  type: "group",
+  children: [
+    {
+      id: "003.001",
+      title: "Presensi",
+      url: "/app/presensi/kehadiran",
+      icon: "schedule",
+    },
+  ],
+}
+
+const adminMenu: INavItem = {
+  id: "004",
   title: "Admin",
   type: "group",
   url: "/app/admin",
   icon: "admin_panel_settings",
   children: [
     {
-      id: "003.001",
+      id: "004.001",
       title: "Pengguna",
       url: "/app/admin/user",
       icon: "people_alt",
@@ -89,7 +103,7 @@ const adminMenu: INavItem = {
 }
 
 const menuItems = {
-  items: [dashboardMenu, masterMenu, adminMenu],
+  items: [dashboardMenu, masterMenu, presensiMenu],
 }
 
 export default menuItems

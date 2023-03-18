@@ -1,7 +1,11 @@
-import FullAppLayout from "@/components/mui/layouts/FullAppLayout"
+import { lazy } from "react"
 
 import { useUiKit } from "./hooks"
 import { PropsChildren } from "./types"
+
+const FullAppLayout = lazy(
+  () => import("@/components/mui/layouts/FullAppLayout")
+)
 
 const UiKitWrapper = ({ children }: PropsChildren) => {
   const [uiKit] = useUiKit()

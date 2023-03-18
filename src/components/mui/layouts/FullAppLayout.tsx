@@ -1,9 +1,7 @@
 import "./FullAppLayout.scss"
 
-import { useState } from "react"
-
 import { PropsChildren } from "@/infra/uikit/types"
-import Box from "@mui/material/Box/Box"
+import { Box } from "@mui/material"
 import { styled, useTheme } from "@mui/material/styles"
 import useMediaQuery from "@mui/material/useMediaQuery/useMediaQuery"
 

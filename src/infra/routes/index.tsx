@@ -3,12 +3,12 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom"
 
 import { routes as AppsRoutes } from "@/apps"
 import { routes as AuthRoutes } from "@/apps/auth"
-import LoaderApp from "@/components/mui/LoaderApp"
+import AppLoader from "@/components/AppLoader"
 import ErrorPage from "@/components/mui/pages/error.page"
 
 import { GuardRoute } from "./guard"
 
-const UiKitWrapper = LoaderApp(lazy(() => import("../uikit/UiKitWrapper")))
+const UiKitWrapper = AppLoader(lazy(() => import("../uikit/UiKitWrapper")))
 const router = createBrowserRouter([
   {
     path: "/",
